@@ -47,7 +47,7 @@
 </head>
 <body>
     <div id="info">
-        🟩 Зелёный Квадрат (Куб) | 🟠 Оранжевый Цилиндр | 🟡 Жёлтая Сфера<br>
+        🟩 Зелёный Квадрат (Куб) | 🟠 Оранжевый Цилиндр | 🟨 Жёлтый Прямоугольник (Кубоид)<br>
         ✨ Все фигуры вращаются вокруг своей оси
     </div>
     <div id="controls-note">
@@ -126,6 +126,7 @@
         axesHelper.material.opacity = 0.12;
         scene.add(axesHelper);
         
+        // Зелёный квадрат (куб)
         const cubeGeometry = new THREE.BoxGeometry(1.4, 1.4, 1.4);
         const cubeMaterial = new THREE.MeshStandardMaterial({
             color: 0x44cc44,
@@ -140,6 +141,7 @@
         greenCube.position.set(-2.2, 0, 0);
         scene.add(greenCube);
         
+        // Оранжевый цилиндр
         const cylinderGeometry = new THREE.CylinderGeometry(0.9, 0.9, 1.6, 48);
         const cylinderMaterial = new THREE.MeshStandardMaterial({
             color: 0xff8800,
@@ -153,19 +155,22 @@
         orangeCylinder.position.set(0, 0, 0);
         scene.add(orangeCylinder);
         
-        const sphereGeometry = new THREE.SphereGeometry(0.9, 64, 64);
-        const sphereMaterial = new THREE.MeshStandardMaterial({
+        // Жёлтый прямоугольник (кубоид) - вместо сферы
+        // Размеры: ширина 1.8, высота 1.0, глубина 1.2
+        const boxGeometry = new THREE.BoxGeometry(1.8, 1.0, 1.2);
+        const boxMaterial = new THREE.MeshStandardMaterial({
             color: 0xffdd44,
             roughness: 0.25,
             metalness: 0.05,
             emissive: 0x442200,
             emissiveIntensity: 0.08
         });
-        const yellowSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-        yellowSphere.castShadow = true;
-        yellowSphere.position.set(2.2, 0, 0);
-        scene.add(yellowSphere);
+        const yellowBox = new THREE.Mesh(boxGeometry, boxMaterial);
+        yellowBox.castShadow = true;
+        yellowBox.position.set(2.2, 0, 0);
+        scene.add(yellowBox);
         
+        // Точечные источники света для эффекта
         const glowGreen = new THREE.PointLight(0x44ff44, 0.4, 4);
         glowGreen.position.set(0, 0, 0.8);
         greenCube.add(glowGreen);
@@ -175,8 +180,8 @@
         orangeCylinder.add(glowOrange);
         
         const glowYellow = new THREE.PointLight(0xffdd66, 0.4, 4);
-        glowYellow.position.set(0.6, 0.6, 0);
-        yellowSphere.add(glowYellow);
+        glowYellow.position.set(0.6, 0.4, 0.5);
+        yellowBox.add(glowYellow);
         
         let time = 0;
         
@@ -184,17 +189,20 @@
             requestAnimationFrame(animate);
             time += 0.016;
             
+            // Вращение зелёного куба
             greenCube.rotation.y += 0.012;
             greenCube.rotation.x += 0.007;
             greenCube.rotation.z += 0.005;
             
+            // Вращение оранжевого цилиндра
             orangeCylinder.rotation.y += 0.015;
             orangeCylinder.rotation.z += 0.008;
             orangeCylinder.rotation.x += 0.004;
             
-            yellowSphere.rotation.x += 0.010;
-            yellowSphere.rotation.y += 0.012;
-            yellowSphere.rotation.z += 0.006;
+            // Вращение жёлтого прямоугольника (кубоида)
+            yellowBox.rotation.x += 0.010;
+            yellowBox.rotation.y += 0.012;
+            yellowBox.rotation.z += 0.006;
             
             const pulse = Math.sin(time * 2) * 0.1;
             glowGreen.intensity = 0.4 + pulse * 0.15;
@@ -214,6 +222,7 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
         
+        // Звёздный фон
         const starGeometry = new THREE.BufferGeometry();
         const starCount = 800;
         const starPositions = new Float32Array(starCount * 3);
@@ -236,3 +245,4 @@
     </script>
 </body>
 </html>
+ 
