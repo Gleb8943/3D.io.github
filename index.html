@@ -67,7 +67,6 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        // --- Сцена, камера, рендерер (на всё окно) ---
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x111122);
         scene.fog = new THREE.FogExp2(0x111122, 0.008);
@@ -82,7 +81,6 @@
         renderer.setPixelRatio(window.devicePixelRatio);
         document.body.appendChild(renderer.domElement);
 
-        // --- Орбит контрол ---
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
@@ -94,13 +92,13 @@
         controls.rotateSpeed = 1.0;
         controls.target.set(0, 0, 0);
         
-        // --- Освещение ---
         const ambientLight = new THREE.AmbientLight(0x404060);
         scene.add(ambientLight);
         
         const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
         directionalLight.position.set(3, 5, 2);
         directionalLight.castShadow = true;
+        directionalLight.receiveShadow = false;
         directionalLight.shadow.mapSize.width = 1024;
         directionalLight.shadow.mapSize.height = 1024;
         scene.add(directionalLight);
@@ -117,7 +115,6 @@
         fillLight.position.set(0, 1, 3);
         scene.add(fillLight);
         
-        // Вспомогательная сетка и оси (полупрозрачные, для ориентации)
         const gridHelper = new THREE.GridHelper(12, 20, 0x88aaff, 0x335588);
         gridHelper.position.y = -1.2;
         gridHelper.material.transparent = true;
@@ -129,9 +126,6 @@
         axesHelper.material.opacity = 0.12;
         scene.add(axesHelper);
         
-        // --- Создание объектов (без колец) ---
-        
-        // 1. Зелёный квадрат (куб)
         const cubeGeometry = new THREE.BoxGeometry(1.4, 1.4, 1.4);
         const cubeMaterial = new THREE.MeshStandardMaterial({
             color: 0x44cc44,
@@ -142,10 +136,10 @@
         });
         const greenCube = new THREE.Mesh(cubeGeometry, cubeMaterial);
         greenCube.castShadow = true;
+        greenCube.receiveShadow = false;
         greenCube.position.set(-2.2, 0, 0);
         scene.add(greenCube);
         
-        // 2. Оранжевый цилиндр
         const cylinderGeometry = new THREE.CylinderGeometry(0.9, 0.9, 1.6, 48);
         const cylinderMaterial = new THREE.MeshStandardMaterial({
             color: 0xff8800,
@@ -159,7 +153,6 @@
         orangeCylinder.position.set(0, 0, 0);
         scene.add(orangeCylinder);
         
-        // 3. Жёлтая сфера
         const sphereGeometry = new THREE.SphereGeometry(0.9, 64, 64);
         const sphereMaterial = new THREE.MeshStandardMaterial({
             color: 0xffdd44,
@@ -173,36 +166,47 @@
         yellowSphere.position.set(2.2, 0, 0);
         scene.add(yellowSphere);
         
-        // --- Анимация вращения каждой фигуры вокруг своей оси ---
+        const glowGreen = new THREE.PointLight(0x44ff44, 0.4, 4);
+        glowGreen.position.set(0, 0, 0.8);
+        greenCube.add(glowGreen);
+        
+        const glowOrange = new THREE.PointLight(0xffaa44, 0.4, 4);
+        glowOrange.position.set(0, 0.7, 0);
+        orangeCylinder.add(glowOrange);
+        
+        const glowYellow = new THREE.PointLight(0xffdd66, 0.4, 4);
+        glowYellow.position.set(0.6, 0.6, 0);
+        yellowSphere.add(glowYellow);
+        
+        let time = 0;
         
         function animate() {
-            // Вращение зелёного куба
+            requestAnimationFrame(animate);
+            time += 0.016;
+            
             greenCube.rotation.y += 0.012;
             greenCube.rotation.x += 0.007;
             greenCube.rotation.z += 0.005;
             
-            // Вращение оранжевого цилиндра
             orangeCylinder.rotation.y += 0.015;
             orangeCylinder.rotation.z += 0.008;
             orangeCylinder.rotation.x += 0.004;
             
-            // Вращение жёлтой сферы
             yellowSphere.rotation.x += 0.010;
             yellowSphere.rotation.y += 0.012;
             yellowSphere.rotation.z += 0.006;
             
-            // Обновление контролов
+            const pulse = Math.sin(time * 2) * 0.1;
+            glowGreen.intensity = 0.4 + pulse * 0.15;
+            glowOrange.intensity = 0.4 + Math.sin(time * 2.3) * 0.15;
+            glowYellow.intensity = 0.4 + Math.sin(time * 1.8) * 0.15;
+            
             controls.update();
-            
-            // Рендер
             renderer.render(scene, camera);
-            
-            requestAnimationFrame(animate);
         }
         
         animate();
         
-        // --- Адаптация под изменение размера окна ---
         window.addEventListener('resize', onWindowResize, false);
         function onWindowResize() {
             camera.aspect = window.innerWidth / window.innerHeight;
@@ -210,7 +214,6 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
         
-        // --- Звёздный фон для атмосферы ---
         const starGeometry = new THREE.BufferGeometry();
         const starCount = 800;
         const starPositions = new Float32Array(starCount * 3);
@@ -224,15 +227,12 @@
         const stars = new THREE.Points(starGeometry, starMaterial);
         scene.add(stars);
         
-        // Медленное вращение звёзд
         function animateStars() {
             stars.rotation.y += 0.0005;
             stars.rotation.x += 0.0003;
             requestAnimationFrame(animateStars);
         }
         animateStars();
-        
-        console.log('Сцена готова! 🟩 Зелёный квадрат, 🟠 Оранжевый цилиндр, 🟡 Жёлтая сфера вращаются вокруг своей оси. Кольца удалены.');
     </script>
 </body>
 </html>
