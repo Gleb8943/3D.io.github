@@ -65,7 +65,6 @@
     <script type="module">
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-        // Импортируем GLTFLoader для загрузки .glb файлов
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
         const scene = new THREE.Scene();
@@ -156,8 +155,7 @@
         orangeCylinder.position.set(0, 0, 0);
         scene.add(orangeCylinder);
         
-        // Жёлтый прямоугольник (кубоид) - вместо сферы
-        // Размеры: ширина 1.8, высота 1.0, глубина 1.2
+        // Жёлтый прямоугольник (кубоид)
         const boxGeometry = new THREE.BoxGeometry(1.8, 1.0, 1.2);
         const boxMaterial = new THREE.MeshStandardMaterial({
             color: 0xffdd44,
@@ -171,7 +169,7 @@
         yellowBox.position.set(2.2, 0, 0);
         scene.add(yellowBox);
         
-        // Точечные источники света для эффекта
+        // Точечные источники света
         const glowGreen = new THREE.PointLight(0x44ff44, 0.4, 4);
         glowGreen.position.set(0, 0, 0.8);
         greenCube.add(glowGreen);
@@ -184,66 +182,58 @@
         glowYellow.position.set(0.6, 0.4, 0.5);
         yellowBox.add(glowYellow);
         
-        // --- КОД ДЛЯ ИМПОРТА 3D МОДЕЛИ ИЗ ФАЙЛА 524352.glb ---
-        // Загрузка GLB модели с локального пути (относительно корня проекта или с указанием диска)
-        // Для корректной работы в GitHub Pages или локальном сервере путь должен быть доступен.
-        // Используем абсолютный путь к файлу, как указано: C:\Users\User\Downloads\524352.glb
-        // ВНИМАНИЕ: Браузеры блокируют доступ к локальным файлам из-за политики безопасности CORS.
-        // Для работы этого кода на локальной машине с файловой системой, необходимо запустить локальный сервер.
-        // Для GitHub Pages необходимо поместить файл 524352.glb в ту же директорию, что и HTML, и указать './524352.glb'.
-        // Ниже указан путь, соответствующий исходному запросу. При необходимости замените на относительный './524352.glb'.
-        
+        // === ЗАГРУЗКА 3D МОДЕЛИ ===
+        // ВАЖНО: Файл 524352.glb должен находиться в ТОЙ ЖЕ папке, что и этот HTML файл!
         const loader = new GLTFLoader();
-        // Путь к файлу. Внимание: в GitHub Pages нужно использовать относительный путь, например './524352.glb'
-        // Поскольку в задании указан абсолютный путь C:\Users\User\Downloads\524352.glb, оставляем его, 
-        // но для веб-окружения он работать не будет. Рекомендуем при размещении на GitHub скопировать модель в папку с проектом.
-        const modelPath = 'C:/Users/User/Downloads/524352.glb';
-        
-        let importedModel = null; // переменная для хранения загруженной модели, если потребуется дополнительное управление
+        const modelPath = './524352.glb'; // Относительный путь - правильный для GitHub Pages
         
         loader.load(modelPath, 
             (gltf) => {
-                importedModel = gltf.scene;
-                // Настройка загруженной модели: включение теней, позиционирование
-                importedModel.traverse((child) => {
+                const model = gltf.scene;
+                model.traverse((child) => {
                     if (child.isMesh) {
                         child.castShadow = true;
-                        child.receiveShadow = false; // для соответствия стилю остальных фигур
+                        child.receiveShadow = false;
                     }
                 });
-                // Размещаем модель в сцене. Чтобы не перекрывать существующие фигуры, расположим её сзади или между.
-                // Для гармоничного расположения ставим позади центральных объектов, немного выше и сбоку.
-                // Выбираем позицию: x = -0.5, y = -0.2, z = -1.2 (позади цилиндра и между кубами)
-                importedModel.position.set(-0.5, -0.2, -1.5);
-                // Масштабируем при необходимости (оригинальный размер модели может быть слишком большим/малым)
-                importedModel.scale.set(0.8, 0.8, 0.8);
-                scene.add(importedModel);
-                console.log('Модель успешно загружена:', modelPath);
+                model.position.set(-0.5, -0.2, -1.5);
+                model.scale.set(0.8, 0.8, 0.8);
+                scene.add(model);
+                console.log('✅ Модель успешно загружена!');
+                
+                // Показываем сообщение об успехе
+                const successMsg = document.createElement('div');
+                successMsg.style.position = 'absolute';
+                successMsg.style.bottom = '20px';
+                successMsg.style.right = '20px';
+                successMsg.style.backgroundColor = 'rgba(0,255,0,0.7)';
+                successMsg.style.color = 'white';
+                successMsg.style.padding = '5px 10px';
+                successMsg.style.borderRadius = '5px';
+                successMsg.style.fontSize = '12px';
+                successMsg.innerText = '✅ 3D модель загружена!';
+                document.body.appendChild(successMsg);
+                setTimeout(() => successMsg.remove(), 3000);
             },
             (xhr) => {
-                // Опциональный прогресс загрузки (можно оставить для отладки)
-                // console.log((xhr.loaded / xhr.total * 100) + '% загружено');
+                console.log((xhr.loaded / xhr.total * 100) + '% загружено');
             },
             (error) => {
-                console.error('Ошибка загрузки модели:', error);
-                // Добавляем визуальное уведомление об ошибке в консоль и в INFO (не ломая сцену)
-                const errorDiv = document.createElement('div');
-                errorDiv.style.position = 'absolute';
-                errorDiv.style.bottom = '50px';
-                errorDiv.style.right = '20px';
-                errorDiv.style.backgroundColor = 'rgba(255,0,0,0.7)';
-                errorDiv.style.color = 'white';
-                errorDiv.style.padding = '5px 10px';
-                errorDiv.style.borderRadius = '5px';
-                errorDiv.style.fontSize = '12px';
-                errorDiv.style.fontFamily = 'monospace';
-                errorDiv.style.zIndex = '20';
-                errorDiv.innerText = '⚠️ Не удалось загрузить 524352.glb. Проверьте путь или наличие файла.';
-                document.body.appendChild(errorDiv);
-                setTimeout(() => { errorDiv.style.opacity = '0'; setTimeout(() => errorDiv.remove(), 3000); }, 5000);
+                console.error('❌ Ошибка загрузки модели:', error);
+                const errorMsg = document.createElement('div');
+                errorMsg.style.position = 'absolute';
+                errorMsg.style.bottom = '20px';
+                errorMsg.style.right = '20px';
+                errorMsg.style.backgroundColor = 'rgba(255,0,0,0.8)';
+                errorMsg.style.color = 'white';
+                errorMsg.style.padding = '10px';
+                errorMsg.style.borderRadius = '5px';
+                errorMsg.style.fontSize = '12px';
+                errorMsg.style.maxWidth = '300px';
+                errorMsg.innerHTML = '❌ Ошибка: Файл 524352.glb не найден!<br><small>Поместите файл в ту же папку, что и HTML</small>';
+                document.body.appendChild(errorMsg);
             }
         );
-        // ------------------------------------------------------
         
         let time = 0;
         
@@ -251,17 +241,14 @@
             requestAnimationFrame(animate);
             time += 0.016;
             
-            // Вращение зелёного куба
             greenCube.rotation.y += 0.012;
             greenCube.rotation.x += 0.007;
             greenCube.rotation.z += 0.005;
             
-            // Вращение оранжевого цилиндра
             orangeCylinder.rotation.y += 0.015;
             orangeCylinder.rotation.z += 0.008;
             orangeCylinder.rotation.x += 0.004;
             
-            // Вращение жёлтого прямоугольника (кубоида)
             yellowBox.rotation.x += 0.010;
             yellowBox.rotation.y += 0.012;
             yellowBox.rotation.z += 0.006;
